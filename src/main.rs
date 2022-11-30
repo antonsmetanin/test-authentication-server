@@ -58,7 +58,7 @@ async fn main() {
         .with(warp::reply::with::header("Access-Control-Allow-Origin", "*"));
 
     warp::serve(user_info)
-        .run(([127, 0, 0, 1], args.port))
+        .run(([0, 0, 0, 0], args.port))
         .await;
 }
 
