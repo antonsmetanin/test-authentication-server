@@ -1,12 +1,23 @@
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
+use log::LevelFilter;
 
+use clap::Parser;
 use serde::{Serialize};
 use warp::{Filter, Rejection};
 use warp::header::headers_cloned;
 use warp::http::HeaderMap;
 use warp::reject::Reject;
 use warp::reply::Json;
+
+/// Test authentication server
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Port to listen on
+    #[clap(short, long, default_value_t = 3030)]
+    port: u16,
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,13 +48,17 @@ impl Reject for Error {}
 
 #[tokio::main]
 async fn main() {
+    env_logger::Builder::new().filter_level(LevelFilter::max()).init();
+
+    let args = Args::parse();
+
     let user_info = warp::path!("user" / "info.json")
         .and(with_authentication())
         .map(handle_user_info)
         .with(warp::reply::with::header("Access-Control-Allow-Origin", "*"));
 
     warp::serve(user_info)
-        .run(([127, 0, 0, 1], 3030))
+        .run(([127, 0, 0, 1], args.port))
         .await;
 }
 
